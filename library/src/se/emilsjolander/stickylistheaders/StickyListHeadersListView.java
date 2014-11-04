@@ -294,13 +294,29 @@ public class StickyListHeadersListView extends FrameLayout {
             return;
         }
 
-        final boolean hasHeaders = mList.getHeaderViewsCount() > 0;
-        int headerPosition = firstVisiblePosition - (hasHeaders ? 1 : 0);
-        if (mList.getChildCount() > 0) {
-            View firstItem = mList.getChildAt(0);
-            if (firstItem.getBottom() < stickyHeaderTop()) {
-                headerPosition++;
+        final int childCount = mList.getChildCount();
+        final int headerCount = mList.getHeaderViewsCount();
+        final boolean hasHeaders = headerCount > 0;
+
+        int visibleHeaderCount = 0;
+        if (childCount > 0 && hasHeaders) {
+            for (int i = 0; i < childCount; i++) {
+                View item = mList.getChildAt(i);
+                if (!(item instanceof WrapperView)
+                        && item.getBottom() >= stickyHeaderTop()) {
+                    visibleHeaderCount++;
+                }
             }
+        }
+
+        int headerPosition;
+        if (visibleHeaderCount > 0) {  // if there is a visible header view, there's no sticky position
+            headerPosition = -1;
+        } else if (firstVisiblePosition > 0 && headerCount > 1) { // first visible position appears to be off
+                                                                  // by one when there's more than 1 header
+            headerPosition = firstVisiblePosition - 1;
+        } else {
+            headerPosition = firstVisiblePosition;
         }
 
         // It is not a mistake to call getFirstVisiblePosition() here.
